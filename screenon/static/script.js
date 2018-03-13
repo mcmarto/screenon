@@ -73,7 +73,7 @@ function fillDaySelector(data) {
 
 function retrieveData() {
   var ajax = new AJAX(true);
-  ajax.getJSON('http://127.0.0.1:5000/data/all',function(data) {
+  ajax.getJSON('/data/all',function(data) {
     // create_chart(data.response)
     // create_table(data.response)
     fillDaySelector(data.response)
