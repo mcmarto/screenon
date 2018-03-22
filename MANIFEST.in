@@ -1,0 +1,2 @@
+graft screenon/static
+include screenon/schema.sql
