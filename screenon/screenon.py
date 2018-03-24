@@ -35,6 +35,22 @@ def close_db(error):
 def render_index():
     return render_template("index.html")
 
+@app.route("/data/last-instant")
+def retrieve_last_instant():
+    db = get_db()
+    cur = db.execute("select max(instant) from screenon")
+    try:
+        entries = cur.fetchall()
+        print(entries)
+        print(entries[0])
+        print(entries[0][0])
+        last_instant = entries[0][0]
+        if not last_instant:
+            last_instant = 0
+    except IndexError:
+        last_instant = 0
+    return jsonify({"instant": last_instant})
+
 @app.route("/data/all")
 def show_entries():
     db = get_db()
