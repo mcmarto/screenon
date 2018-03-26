@@ -10,7 +10,8 @@
     <script src="./static/chart.bundle.min.js"></script>
     <script src="./static/moment-with-locales.min.js"></script>
     <script src="./static/script.js"></script>
-    
+   
+    <select id="daySelector"></select> 
     <div style="max-width: 600px; max-height:400px">
         <canvas id="myChart" width="600" height="400"></canvas>
     </div>
@@ -18,11 +19,13 @@
     <script>
         retrieveData()
     </script>
+    <div id="counter"></div>
     <table>
-	    <tbody id="tbody">
-		    <tr> <td>moment</td> <td>on/off</td> <td>delta</td> </tr>
-		    
-	    </tbody>
+        <thead>
+		<tr> <td>moment</td> <td>on/off</td> <td>delta (s)</td> <td>cumulated usage (s)</td> </tr>
+	</thead>
+	<tbody id="tbody">
+        </tbody>
     </table>
   </body>
 </html>
