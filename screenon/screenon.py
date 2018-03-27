@@ -56,7 +56,7 @@ def show_entries():
     db = get_db()
     cur = db.execute("select * from screenon order by instant asc")
     entries = cur.fetchall()
-    serialized_entries = [{"instant": entry[0], "on_off": bool(entry[1])} for entry in entries]
+    serialized_entries = [{"instant": entry[0], "on_off": bool(int(entry[1]))} for entry in entries]
     return jsonify({"response": serialized_entries})
 
 @app.route("/data", methods=["POST"])
