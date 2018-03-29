@@ -41,22 +41,20 @@ def retrieve_last_instant():
     cur = db.execute("select max(instant) from screenon")
     try:
         entries = cur.fetchall()
-        print(entries)
-        print(entries[0])
         print(entries[0][0])
         last_instant = entries[0][0]
         if not last_instant:
             last_instant = 0
     except IndexError:
         last_instant = 0
-    return jsonify({"instant": last_instant})
+    return jsonify({"instant": float(last_instant)})
 
 @app.route("/data/all")
 def show_entries():
     db = get_db()
     cur = db.execute("select * from screenon order by instant asc")
     entries = cur.fetchall()
-    serialized_entries = [{"instant": entry[0], "on_off": bool(int(entry[1]))} for entry in entries]
+    serialized_entries = [{"instant": float(entry[0]), "on_off": bool(int(entry[1]))} for entry in entries]
     return jsonify({"response": serialized_entries})
 
 @app.route("/data", methods=["POST"])
@@ -66,7 +64,8 @@ def add_entry():
     if input_data:
         for new_entry in input_data:
             db.execute("insert into screenon (instant, ison) values (?, ?)", (new_entry["instant"], new_entry["on_off"] and 1 or 0))
-        db.execute("commit")
+        db.commit()
+        print("ok!")
         return jsonify({"response": "OK"})
     else:
         print("error: malformed json")
