@@ -28,6 +28,66 @@ var myChart = new Chart(ctx, {
 });
 }
 
+// data: Entry[] where every entry belong to the same day
+function group_by_hour(data) {
+  var result = [];
+  for(let i = 0; i<24; i++) {
+    result.push({hour: i, hits: 0});
+  }
+
+  data.forEach(entry => {
+    let hour_of_entry = 1 * moment.unix(entry.instant).format("HH");
+    result[hour_of_entry].hits += 1;
+  });
+
+  return result;
+}
+
+// data: Entry[] where every entry belong to the same day and hour
+function group_by_minute(data) {
+  var result = [];
+  for(let i = 0; i<60; i++) {
+    result.push({hour: i, hits: 0});
+  }
+
+  data.forEach(entry => {
+    let hour_of_entry = 1 * moment.unix(entry.instant).format("mm");
+    result[hour_of_entry].hits += 1;
+  });
+
+  return result;
+}
+
+function create_screenchange_chart(data, chartOptions) {
+chartOptions = chartOptions || {
+  id: "screenChangesChart",
+  grouping_fn: group_by_hour,
+  label: "screen change events in an hour"
+};
+var ctx = document.getElementById(chartOptions.id).getContext('2d');
+var grouped_data = chartOptions.grouping_fn(data);
+var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: grouped_data.map(d => d.hour),
+        datasets: [{
+            label: chartOptions.label,
+            data: grouped_data.map(d => d.hits),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        }
+    }
+});
+}
+
 function create_table(data) {
   let tableContainer = document.querySelector("#tbody");
     tableContainer.innerHTML = "";
@@ -71,15 +131,27 @@ function fillDaySelector(data) {
   });
 }
 
+function fillHourSelector(){
+  let selector = document.querySelector("#hourSelector");
+  for(let i=0; i<24; i++) {
+    let new_option = document.createElement("option");
+    new_option.key = i;
+    new_option.innerHTML = "Hour "+i;
+    selector.appendChild(new_option);
+  }
+}
+
 function retrieveData() {
   var ajax = new AJAX(true);
   ajax.getJSON('/data/all',function(data) {
     // create_chart(data.response)
     // create_table(data.response)
-    fillDaySelector(data.response)
+    fillDaySelector(data.response);
+    fillHourSelector();
     FULL_TIME_ENTRIES = data.response;
 
     changeDay({currentTarget: {selectedOptions: [{key: data.response[0].instant}], selectedIndex: 0}});
+    changeHour({currentTarget: {selectedOptions: [{key: 0}], selectedIndex: 0}});
   }, function(statusCode) {
     console.error(statusCode);
     alert("could not download data");
@@ -90,8 +162,34 @@ function changeDay(e) {
   let min_instant = e.currentTarget.selectedOptions[0].key;
   let max_instant = DAY_MIN_INSTANTS[e.currentTarget.selectedIndex+1] || Infinity;
   create_chart(FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant));
+  create_screenchange_chart(FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant));
   create_table(FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant));
+//  setTimeout(() => changeHour({currentTarget: document.querySelector("#hourSelector")}), 0);
 }
+
+function retrieve_selected_day_instants() {
+  let daySelector = document.querySelector("#daySelector");
+  let min_instant = daySelector.selectedOptions[0].key;
+  let max_instant = DAY_MIN_INSTANTS[daySelector.selectedIndex+1] || Infinity;
+  return {"min": min_instant, "max": max_instant};
+}
+
+function filter_day_data(min_instant, max_instant) {
+  return FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant);
+}
+
+function changeHour(e) {
+  let hour = e.currentTarget.selectedOptions[0].key;
+  let instants = retrieve_selected_day_instants();
+  let day_data = filter_day_data(instants.min, instants.max);
+  create_screenchange_chart(day_data.filter(entry => 1*moment.unix(entry.instant).format("HH") === hour), {
+	  id: "hourlyScreenChangesChart",
+	  grouping_fn: group_by_minute,
+	  label: "change events in a minute"
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   document.querySelector("#daySelector").onchange=changeDay;
+  document.querySelector("#hourSelector").onchange=changeHour;
 });

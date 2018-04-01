@@ -12,10 +12,22 @@
     <script src="./static/script.js"></script>
    
     <select id="daySelector"></select> 
-    <div style="max-width: 600px; max-height:400px">
+    <div style="max-width: 600px; max-height:400px; display: none">
         <canvas id="myChart" width="600" height="400"></canvas>
     </div>
-
+   
+    <div style="display: flex; flex-direction: row"> 
+      <div style="max-width: 600px; max-height:400px">
+        <canvas id="screenChangesChart" width="600" height="400"></canvas>
+      </div>
+      <div style="display: flex; flex-direction: column">
+	<select id="hourSelector"></select>
+        <div style="max-width: 600px; max-height:400px">
+          <canvas id="hourlyScreenChangesChart" width="600" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+   
     <script>
         retrieveData()
     </script>
