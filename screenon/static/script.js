@@ -28,6 +28,54 @@ var myChart = new Chart(ctx, {
 });
 }
 
+const is_off = (on_off) => on_off === false;
+
+function cumulated_time(data) {
+  let cumulated = [];
+  let currentTotal = 0;
+  let last_entry = null;
+  data.forEach(entry => {
+    //if(entry.on_off === false) {
+    if(is_off(entry.on_off)) { // if it is now off
+	if(last_entry !== null) {
+	  const delta = entry.instant - last_entry.instant;
+	  currentTotal += delta;
+	  cumulated.push({instant: entry.instant, value: currentTotal});
+	}
+    }
+    last_entry = entry;
+  });
+  return cumulated;
+}
+
+function create_cumulated_chart(data) {
+var ctx = document.getElementById("cumulatedChart").getContext('2d');
+const cumulated_data = cumulated_time(data);
+var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: cumulated_data.map(d => d.instant),
+        datasets: [{
+            label: 'screen on time (cumulated)',
+            data: cumulated_data.map(d => {return {x: d.instant, y: d.value}}),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }],
+	    line: {
+	         steppedLine: 'after'
+	    }
+        }
+    }
+});
+}
+
 // data: Entry[] where every entry belong to the same day
 function group_by_hour(data) {
   var result = [];
@@ -161,10 +209,12 @@ function retrieveData() {
 function changeDay(e) {
   let min_instant = e.currentTarget.selectedOptions[0].key;
   let max_instant = DAY_MIN_INSTANTS[e.currentTarget.selectedIndex+1] || Infinity;
-  create_chart(FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant));
-  create_screenchange_chart(FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant));
-  create_table(FULL_TIME_ENTRIES.filter(entry => min_instant <= entry.instant && entry.instant < max_instant));
-//  setTimeout(() => changeHour({currentTarget: document.querySelector("#hourSelector")}), 0);
+  const day_data = filter_day_data(min_instant, max_instant);
+  create_chart(day_data);
+  create_screenchange_chart(day_data);
+  create_table(day_data);
+  create_cumulated_chart(day_data);
+  setTimeout(() => changeHour({currentTarget: document.querySelector("#hourSelector")}), 0);
 }
 
 function retrieve_selected_day_instants() {
@@ -189,7 +239,24 @@ function changeHour(e) {
   });
 }
 
+function toggleChart(dom_node) {
+  function _toggle() {
+    if(dom_node.style.display === "none") {
+       dom_node.style.display = "block";
+    }
+    else {
+       dom_node.style.display = "none";
+    }
+  }
+  return _toggle;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   document.querySelector("#daySelector").onchange=changeDay;
   document.querySelector("#hourSelector").onchange=changeHour;
+
+  document.querySelector("#scatterChartContainer > span").onclick = toggleChart(document.querySelector("#scatterChartContainer > div"));
+  document.querySelector("#screenChangesChartContainer > span").onclick = toggleChart(document.querySelector("#screenChangesChartContainer > div"));
+  document.querySelector("#tableChartContainer > span").onclick = toggleChart(document.querySelector("#tableChartContainer > table"));
+  document.querySelector("#githubChartContainer > span").onclick = toggleChart(document.querySelector("#githubChartContainer > table"));
 });
