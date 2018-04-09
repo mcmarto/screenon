@@ -142,6 +142,7 @@ function fillHourSelector(){
 function retrieveData() {
   var ajax = new AJAX(true);
   ajax.getJSON('/data/all',function(data) {
+    data = {response: merge_consecutive_entries(data.response)};
     // create_chart(data.response)
     // create_table(data.response)
     fillDaySelector(data.response);
