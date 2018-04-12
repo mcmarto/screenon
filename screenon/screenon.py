@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from flask import Flask, request, session, g, jsonify, abort, render_template
+from flask_cors import cross_origin 
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -50,6 +51,7 @@ def retrieve_last_instant():
     return jsonify({"instant": float(last_instant)})
 
 @app.route("/data/all")
+@cross_origin()
 def show_entries():
     db = get_db()
     cur = db.execute("select * from screenon order by instant asc")
