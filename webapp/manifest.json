@@ -1,0 +1,6 @@
+{
+  "name": "screen-on",
+  "short_name": "screen-on",
+  "start_url": "/",
+  "display": "standalone"
+}

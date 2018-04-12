@@ -1,0 +1,38 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<!-- <script src="../data_handling.js"></script> -->
+
+<dom-module id="data-loader">
+  <template>
+   <iron-ajax
+      auto
+      url="http://127.0.0.1:5000/data/all"
+      handle-as="json"
+      on-response="dataReceived"
+    ></iron-ajax>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class DataLoader extends Polymer.Element {
+      static get is() { return 'data-loader'; }
+      static get properties() {
+        return {
+          //prop1: {
+          //  type: String,
+          //  value: 'screen-on-app'
+          //}
+        };
+      }
+      dataReceived(evt) {
+	let full_entries_list = evt.detail.response.response; 
+	this.dispatchEvent(new CustomEvent('data-received', {detail: merge_consecutive_entries(full_entries_list)})); 
+      }
+    }
+
+    window.customElements.define(DataLoader.is, DataLoader);
+  </script>
+</dom-module>

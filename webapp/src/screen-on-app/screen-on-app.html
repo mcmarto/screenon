@@ -1,0 +1,81 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../data-loader/data-loader.html">
+<link rel="import" href="../bar-chart/bar-chart.html">
+<link rel="import" href="../cumulated-chart/cumulated-chart.html">
+<link rel="import" href="../../bower_components/px-rangepicker/px-rangepicker.html">
+<script src="../../bower_components/chart.js/dist/Chart.bundle.min.js"></script>
+<script src="../data_handling.js"></script>
+
+<dom-module id="screen-on-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+    <data-loader on-data-received="fill_table"></data-loader>
+    <!--
+    <template is="dom-repeat" items="[[formatted_json]]">
+      <p>[[item.instant]]</p>
+    </template>
+    -->
+  <px-rangepicker 
+    hide-time
+    hide-presets
+    show-buttons
+    block-future-dates
+    allow-wrap
+    show-field-titles
+    full-width
+    date-format="YYYY/MM/DD"
+    min-date="[[min_date]]"
+    max-date="[[max_date]]"
+    from-moment-changed="update_start_time"
+    to-moment-changed="update_end_time"
+  ></px-rangepicker>
+  <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
+  <cumulated-chart data="[[cumulated_per_day]]"></cumulated-chart>
+  </template>
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class ScreenOnApp extends Polymer.Element {
+      static get is() { return 'screen-on-app'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'screen-on-app'
+          }
+        };
+      }
+
+      fill_table(evt) {
+        console.log(evt);
+        this.formatted_json = evt.detail;
+        this.min_date = moment.unix(evt.detail[0].instant);
+        this.max_date = moment.unix(evt.detail[evt.detail.length-1].instant);
+        this.grouped_per_day = group_by_day(evt.detail);
+      }
+
+      fill_cumulated(evt) {
+        const index = evt.detail.index;
+	const day = this.grouped_per_day[index].interval;
+        this.cumulated_per_day = cumulated_time(filter_by_day(this.formatted_json, day));
+      }
+
+      update_start_time(evt) {
+          console.log("update start time", evt, evt.detail);
+      }
+
+      update_end_time(evt) {
+          console.log("update end time", evt, evt.detail);
+      }
+    }
+
+    window.customElements.define(ScreenOnApp.is, ScreenOnApp);
+  </script>
+</dom-module>

@@ -1,0 +1,59 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="bar-chart">
+  <template>
+    <style>
+      .canvas-container {
+        width: 700px;
+        height: 400px;
+      }
+    </style>
+    <!-- https://stackoverflow.com/questions/40529006/chartjs-and-polymer-1-7-0/40534016#40534016 -->
+    <div class="canvas-container">
+    <canvas id="barchart" width="700" height="400"></canvas>
+    </div>
+  </template>
+  <script>
+    class BarChart extends Polymer.Element {
+      static get is() { return "bar-chart" }
+      static get properties () {
+        return {
+            data: { type: Array, observer: "_dataChanged"}
+        };
+      }
+
+      _dataChanged(new_data) {
+         console.log("bar-chart", "dataChanged", new_data, this.mychart);
+         if(!new_data) return;
+         if(this.mychart) {
+           this.mychart.destroy();
+           console.log("bar-chart", "destroyed previous mychart reference!");
+         } 
+         this.mychart = new Chart(this.$.barchart, {
+          type: "bar",
+          data: {
+            labels: new_data.map(entry => entry.interval),
+            datasets: [{
+              label: "# of screen change events per day",
+              data: new_data.map(entry => entry.value),
+              backgroundColor: "grey"
+	    }]
+          },
+          options: {
+            events: ["click"],
+		  onClick: (evt, clickedBar) => {
+			  this._onClick(this, evt, clickedBar);  
+		  }
+	  }
+        }); 
+      }
+
+      _onClick(_this, evt, clickedBar) {
+          console.log("bar-chart", "onclick", evt, clickedBar);
+	  const clicked_bar_index = clickedBar[0]._index;
+	  _this.dispatchEvent(new CustomEvent("day-selected", {detail: {index: clicked_bar_index}}));
+      }
+    }
+    window.customElements.define(BarChart.is, BarChart);
+  </script>
+</dom-module>
