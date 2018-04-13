@@ -90,3 +90,34 @@ function merge_consecutive_entries(data) {
     return prev;
   }, []);
 }
+
+function fix_data(data) {
+  let merged_data = merge_consecutive_entries(data);
+
+  // group entries by day
+  let grouped_by_day = {};
+  merged_data.forEach(entry => {
+    let day = moment.unix(entry.instant).format("YYYY MM DD");
+    if(grouped_by_day[day]) {
+      grouped_by_day[day].push(entry);
+    }
+    else {
+      grouped_by_day[day] = [entry];
+    }
+  });
+
+  // add entries at midnight
+  Object.keys(grouped_by_day).forEach((day, i) => {
+    // TODO: replace this condition with fake "opposite" entry(?)
+    if(i === 0) return;
+
+    // not using moment.utc here because timestamps on server are not utc
+    let midnight = moment(day, "YYYY MM DD");
+    let previous_day_entries = grouped_by_day[Object.keys(grouped_by_day)[i-1]];
+    let last_entry_of_previous_day = previous_day_entries[previous_day_entries.length-1];
+    grouped_by_day[day].splice(0, 0, {instant: midnight.valueOf()/1000, on_off: last_entry_of_previous_day.on_off});
+  });
+
+  // flatten
+  return Object.values(grouped_by_day).reduce((result, entries) => result.concat(entries), []);
+}

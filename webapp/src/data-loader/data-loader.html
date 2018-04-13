@@ -29,7 +29,7 @@
       }
       dataReceived(evt) {
 	let full_entries_list = evt.detail.response.response; 
-	this.dispatchEvent(new CustomEvent('data-received', {detail: merge_consecutive_entries(full_entries_list)})); 
+	this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));
       }
     }
 
