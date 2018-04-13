@@ -4,9 +4,9 @@ function cumulated_time(data) {
   let cumulated = [];
   let currentTotal = 0;
   let last_entry = null;
+  cumulated.push({instant: data[0].instant, value: 0});
   data.forEach(entry => {
-    //if(entry.on_off === false) {
-    if(!turned_off(entry.on_off)) {
+    if(turned_off(entry.on_off)) {
 	// TODO: for the time being, we decide to ignore the time before
 	// the first screen change event if the screen was ON
 	if(last_entry !== null) {
