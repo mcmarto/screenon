@@ -3,6 +3,8 @@
 <link rel="import" href="../bar-chart/bar-chart.html">
 <link rel="import" href="../cumulated-chart/cumulated-chart.html">
 <link rel="import" href="../../bower_components/px-rangepicker/px-rangepicker.html">
+<link rel="import" href="../../bower_components/px-tabs/px-tabs.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <script src="../../bower_components/chart.js/dist/Chart.bundle.min.js"></script>
 <script src="../data_handling.js"></script>
 
@@ -34,8 +36,20 @@
     from-moment-changed="update_start_time"
     to-moment-changed="update_end_time"
   ></px-rangepicker>
-  <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
-  <cumulated-chart data="[[cumulated_per_day]]"></cumulated-chart>
+  <px-tabs
+    selected="{{selected_chart}}">
+    <px-tab id="tab1">Cumulated usage time</px-tab>
+    <px-tab id="tab2">Sleep cycle</px-tab>
+  </px-tabs>
+  <iron-pages selected="[[selected_chart]]">
+      <div id="tab1-content">
+          <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
+          <cumulated-chart data="[[cumulated_per_day]]"></cumulated-chart>
+      </div>
+      <div id="tab2-content">
+          <p>sleep cycle chart coming soon!</p>
+      </div>
+  </iron-pages>
   </template>
   <script>
     /**
