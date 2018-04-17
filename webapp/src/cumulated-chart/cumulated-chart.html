@@ -35,7 +35,7 @@
             labels: new_data.map(entry => moment.unix(entry.instant).format("HH mm ss")),
             datasets: [{
               label: "screen time (cumulated)",
-              data: new_data.map(entry => { return {x: entry.instant, y: entry.value}}),
+              data: new_data.map(entry => { return {x: entry.instant, y: Math.round(entry.value)}}),
               backgroundColor: "grey"
 	    }]
           }
