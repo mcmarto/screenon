@@ -2,7 +2,7 @@
 <link rel="import" href="../data-loader/data-loader.html">
 <link rel="import" href="../bar-chart/bar-chart.html">
 <link rel="import" href="../cumulated-chart/cumulated-chart.html">
-<link rel="import" href="../../bower_components/px-rangepicker/px-rangepicker.html">
+<link rel="import" href="../../bower_components/px-datetime-picker/px-datetime-picker.html">
 <link rel="import" href="../../bower_components/px-tabs/px-tabs.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <script src="../../bower_components/chart.js/dist/Chart.bundle.min.js"></script>
@@ -17,37 +17,34 @@
     </style>
     <h2>Hello [[prop1]]!</h2>
     <data-loader on-data-received="fill_table"></data-loader>
-    <!--
-    <template is="dom-repeat" items="[[formatted_json]]">
-      <p>[[item.instant]]</p>
-    </template>
-    -->
-  <px-rangepicker 
+  <px-datetime-picker 
     hide-time
     hide-presets
     show-buttons
     block-future-dates
-    allow-wrap
     show-field-titles
-    full-width
     date-format="YYYY/MM/DD"
     min-date="[[min_date]]"
     max-date="[[max_date]]"
-    from-moment-changed="update_start_time"
-    to-moment-changed="update_end_time"
-  ></px-rangepicker>
+    moment-obj-changed="update_selected_day"
+  ></px-datetime-picker>
   <px-tabs
     selected="{{selected_chart}}">
-    <px-tab id="tab1">Cumulated usage time</px-tab>
+    <px-tab id="tab1">Cumulated phone usage</px-tab>
     <px-tab id="tab2">Sleep cycle</px-tab>
+    <px-tab id="tab3">Distribution of phone usage</px-tab>
   </px-tabs>
   <iron-pages selected="[[selected_chart]]">
-      <div id="tab1-content">
+      <div id="tab1-content" style="display: flex; flex-direction: wrap;">
           <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
           <cumulated-chart data="[[cumulated_per_day]]"></cumulated-chart>
       </div>
       <div id="tab2-content">
           <p>sleep cycle chart coming soon!</p>
+      </div>
+      <div id="tab3-content">
+          <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
+	  <p>distribution of phone usage coming soon!</p>
       </div>
   </iron-pages>
   </template>
@@ -81,12 +78,8 @@
         this.cumulated_per_day = cumulated_time(filter_by_day(this.formatted_json, day));
       }
 
-      update_start_time(evt) {
-          console.log("update start time", evt, evt.detail);
-      }
-
-      update_end_time(evt) {
-          console.log("update end time", evt, evt.detail);
+      update_selected_day(evt) {
+          console.log("update selected day", evt, evt.detail);
       }
     }
 
