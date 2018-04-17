@@ -2,6 +2,7 @@
 <link rel="import" href="../data-loader/data-loader.html">
 <link rel="import" href="../bar-chart/bar-chart.html">
 <link rel="import" href="../cumulated-chart/cumulated-chart.html">
+<link rel="import" href="../distribution-chart/distribution-chart.html">
 <link rel="import" href="../../bower_components/px-datetime-picker/px-datetime-picker.html">
 <link rel="import" href="../../bower_components/px-tabs/px-tabs.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
@@ -43,8 +44,8 @@
           <p>sleep cycle chart coming soon!</p>
       </div>
       <div id="tab3-content">
-          <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
-	  <p>distribution of phone usage coming soon!</p>
+          <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_distribution"></bar-chart>
+          <distribution-chart data="[[distribution_per_day]]"></distribution-chart>
       </div>
   </iron-pages>
   </template>
@@ -77,6 +78,13 @@
 	const day = this.grouped_per_day[index].interval;
         this.cumulated_per_day = cumulated_time(filter_by_day(this.formatted_json, day));
       }
+
+      fill_distribution(evt) {
+        const index = evt.detail.index;
+	const day = this.grouped_per_day[index].interval;
+        this.distribution_per_day = duration_distribution(filter_by_day(this.formatted_json, day));
+      }
+
 
       update_selected_day(evt) {
           console.log("update selected day", evt, evt.detail);

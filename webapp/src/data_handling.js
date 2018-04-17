@@ -121,3 +121,30 @@ function fix_data(data) {
   // flatten
   return Object.values(grouped_by_day).reduce((result, entries) => result.concat(entries), []);
 }
+
+function duration_distribution(single_day_data) {
+  let cache = {};
+  let currentTotal = 0;
+  let last_entry = null;
+  single_day_data.forEach(entry => {
+    if(turned_off(entry.on_off)) {
+	if(last_entry !== null) {
+	  const delta = Math.round(entry.instant - last_entry.instant);
+          if(cache[delta] !== undefined) {
+              cache[delta] += 1;
+	  }
+          else {
+	      cache[delta] = 1;
+	  }
+	}
+    }
+    last_entry = entry;
+  });
+
+  let distribution = [];
+  let sorted_durations = Object.keys(cache).sort();
+  sorted_durations.forEach(delta => {
+    if(delta < 200) distribution.push({delta, hits: cache[delta]});
+  });
+  return distribution;
+}

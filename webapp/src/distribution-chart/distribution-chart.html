@@ -1,0 +1,69 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<!-- <script src="../data_handling.js"></script> -->
+
+<dom-module id="distribution-chart">
+  <template>
+    <style>
+      .canvas-container {
+        width: 700px;
+        height: 400px;
+      }
+    </style>
+    <p style="font-style: italic">durations over 200s (3 minutes and 20 seconds) are not shown to better appreciate the curve of smaller durations</p>
+    <!-- https://stackoverflow.com/questions/40529006/chartjs-and-polymer-1-7-0/40534016#40534016 -->
+    <div class="canvas-container">
+    <canvas id="distributionchart" width="700" height="400"></canvas>
+    </div>
+    <table>
+       <tbody>
+	       <template is="dom-repeat" items="[[data]]">
+		       <tr>
+			       <td>time: [[item.delta]]s</td>
+			       <td>hits: [[item.hits]]</td>
+		       </tr>
+	       </template>
+       </tbody>
+    </table>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class DistributionChart extends Polymer.Element {
+      static get is() { return 'distribution-chart'; }
+      static get properties () {
+        return {
+            data: { type: Array, observer: "_dataChanged"}
+        };
+      }
+
+      _dataChanged(new_data) {
+         console.log("distribution-chart", "dataChanged", new_data, this.mychart);
+         if(!new_data) return;
+	 this.sorted_data = new_data.sort((a, b) => a.delta - b.delta);
+         if(this.mychart) {
+           this.mychart.destroy();
+           console.log("distribution-chart", "destroyed previous mychart reference!");
+         } 
+         this.mychart = new Chart(this.$.distributionchart, {
+          type: "scatter",
+          data: {
+            labels: new_data.map(entry => entry.delta),
+            datasets: [{
+              label: "screen time (distribution usage/times)",
+              data: new_data.map(entry => { return {x: entry.delta, y: entry.hits}}),
+              backgroundColor: "grey"
+	    }]
+          },
+          options: { scales: { yAxes: [{display: true, ticks: {beginAtZero: true}}]}}
+	 }); 
+      }
+
+    }
+
+    window.customElements.define(DistributionChart.is, DistributionChart);
+  </script>
+</dom-module>
