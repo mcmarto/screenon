@@ -5,10 +5,12 @@
 <dom-module id="distribution-chart">
   <template>
     <style>
-      .canvas-container {
-        width: 700px;
-        height: 400px;
-      }
+     .canvas-container {
+        width: calc(100vw / 2 - 5vw);
+        min-width: 400px;
+        height: calc(100vh / 3);
+        max-height: 400px;
+     } 
     </style>
     <p style="font-style: italic">durations over 200s (3 minutes and 20 seconds) are not shown to better appreciate the curve of smaller durations</p>
     <!-- https://stackoverflow.com/questions/40529006/chartjs-and-polymer-1-7-0/40534016#40534016 -->

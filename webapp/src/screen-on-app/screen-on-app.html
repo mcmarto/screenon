@@ -16,7 +16,7 @@
         display: block;
       }
     </style>
-    <h2>Hello [[prop1]]!</h2>
+    <h2>Screen-On - how much are you using your phone?</h2>
     <data-loader on-data-received="fill_table"></data-loader>
   <px-datetime-picker 
     hide-time
@@ -27,28 +27,26 @@
     date-format="YYYY/MM/DD"
     min-date="[[min_date]]"
     max-date="[[max_date]]"
-    moment-obj-changed="update_selected_day"
+    on-moment-obj-changed="update_selected_day"
   ></px-datetime-picker>
-  <px-tabs
-    selected="{{selected_chart}}">
-    <px-tab id="tab1">Cumulated phone usage</px-tab>
-    <px-tab id="tab2">Sleep cycle</px-tab>
-    <px-tab id="tab3">Distribution of phone usage</px-tab>
-  </px-tabs>
-  <iron-pages selected="[[selected_chart]]">
-      <div id="tab1-content" style="display: flex; flex-direction: wrap;">
-          <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_cumulated"></bar-chart>
-          <cumulated-chart data="[[cumulated_per_day]]"></cumulated-chart>
+      <div style="display: flex; flex-flow: wrap;">
+       <bar-chart data="[[grouped_per_day]]"></bar-chart>
+       <div>
+         <px-tabs selected="{{selected_chart}}">
+           <px-tab id="tab1">Cumulated phone usage</px-tab>
+           <px-tab id="tab3">Distribution of phone usage</px-tab>
+         </px-tabs>
+         <iron-pages selected="[[selected_chart]]">
+           <div id="tab1-content">
+             <cumulated-chart data="[[cumulated_per_day]]"></cumulated-chart>
+           </div>
+           <div id="tab3-content">
+             <distribution-chart data="[[distribution_per_day]]"></distribution-chart>
+           </div>
+         </iron-pages>
+       </div>
       </div>
-      <div id="tab2-content">
-          <p>sleep cycle chart coming soon!</p>
-      </div>
-      <div id="tab3-content">
-          <bar-chart data="[[grouped_per_day]]" on-day-selected="fill_distribution"></bar-chart>
-          <distribution-chart data="[[distribution_per_day]]"></distribution-chart>
-      </div>
-  </iron-pages>
-  </template>
+    </template>
   <script>
     /**
      * @customElement
@@ -58,11 +56,10 @@
       static get is() { return 'screen-on-app'; }
       static get properties() {
         return {
-          prop1: {
-            type: String,
-            value: 'screen-on-app'
-          }
-        };
+	    grouped_per_day: {
+	        type: Array, value: []
+	    }
+	};
       }
 
       fill_table(evt) {
@@ -85,9 +82,11 @@
         this.distribution_per_day = duration_distribution(filter_by_day(this.formatted_json, day));
       }
 
-
       update_selected_day(evt) {
           console.log("update selected day", evt, evt.detail);
+	  const index = this.grouped_per_day.findIndex(d => d.interval === evt.detail.value.format("YYYY MM DD"));
+          this.fill_cumulated({detail: {index: index}}); 
+          this.fill_distribution({detail: {index: index}}); 
       }
     }
 

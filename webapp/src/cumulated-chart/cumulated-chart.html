@@ -4,10 +4,13 @@
   <template>
     <style>
       .canvas-container {
-        width: 700px;
-        height: 400px;
+        width: calc(100vw / 2 - 5vw);
+        min-width: 400px;
+        height: calc(100vh / 3);
+        max-height: 400px;
       }
     </style>
+    <p>Total time: [[total_time_seconds]] seconds ~ [[total_time_hours]]</p>
     <!-- https://stackoverflow.com/questions/40529006/chartjs-and-polymer-1-7-0/40534016#40534016 -->
     <div class="canvas-container">
     <canvas id="cumulatedchart" width="700" height="400"></canvas>
@@ -28,7 +31,9 @@
          if(this.mychart) {
            this.mychart.destroy();
            console.log("cumulated-chart", "destroyed previous mychart reference!");
-         } 
+         }
+	 this.total_time_seconds = Math.round(new_data[new_data.length-1].value);
+	 this.total_time_hours = `${Math.floor(this.total_time_seconds/60/60)} hours ${Math.floor((this.total_time_seconds/60)%60)} minutes`;
          this.mychart = new Chart(this.$.cumulatedchart, {
           type: "line",
           data: {

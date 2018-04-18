@@ -4,13 +4,15 @@
   <template>
     <style>
       .canvas-container {
-        width: 700px;
-        height: 400px;
+        width: calc(100vw / 2 - 5vw);
+        min-width: 400px;
+        height: calc(100vh / 3);
+        max-height: 400px;
       }
     </style>
     <!-- https://stackoverflow.com/questions/40529006/chartjs-and-polymer-1-7-0/40534016#40534016 -->
     <div class="canvas-container">
-    <canvas id="barchart" width="700" height="400"></canvas>
+    <canvas id="barchart"></canvas>
     </div>
   </template>
   <script>
