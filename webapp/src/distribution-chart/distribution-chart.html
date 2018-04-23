@@ -8,8 +8,14 @@
      .canvas-container {
         width: calc(100vw / 2 - 5vw);
         min-width: 400px;
-        height: calc(100vh / 3);
+        /*height: calc(100vh / 3);*/
+        height: 380px;
         max-height: 400px;
+	margin: auto;
+     }
+     :host {
+        text-align: center;     
+	border: 1px solid red;
      } 
     </style>
     <p style="font-style: italic">durations over 200s (3 minutes and 20 seconds) are not shown to better appreciate the curve of smaller durations</p>
@@ -18,6 +24,9 @@
     <canvas id="distributionchart" width="700" height="400"></canvas>
     </div>
     <table>
+       <thead>
+	       <tr><th>time</th><th>hits</th></tr>
+       </thead>
        <tbody>
 	       <template is="dom-repeat" items="[[data]]">
 		       <tr>
