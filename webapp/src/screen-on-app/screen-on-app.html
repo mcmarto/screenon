@@ -29,9 +29,10 @@
     max-date="[[max_date]]"
     on-moment-obj-changed="update_selected_day"
   ></px-datetime-picker>
-      <div style="display: flex; flex-flow: wrap;">
+      <div style="height: fit-content">
        <bar-chart data="[[grouped_per_day]]"></bar-chart>
-       <div>
+      </div>
+      <div>
          <px-tabs selected="{{selected_chart}}">
            <px-tab id="tab1">Cumulated phone usage</px-tab>
            <px-tab id="tab3">Distribution of phone usage</px-tab>
@@ -45,7 +46,6 @@
            </div>
          </iron-pages>
        </div>
-      </div>
     </template>
   <script>
     /**
@@ -66,7 +66,7 @@
         console.log(evt);
         this.formatted_json = evt.detail;
         this.min_date = moment.unix(evt.detail[0].instant);
-        this.max_date = moment.unix(evt.detail[evt.detail.length-1].instant);
+        this.max_date = moment.unix(evt.detail[evt.detail.length-1].instant).add(1, "day");
         this.grouped_per_day = group_by_day(evt.detail);
       }
 
