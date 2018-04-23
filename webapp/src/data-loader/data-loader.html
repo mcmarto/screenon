@@ -4,9 +4,10 @@
 
 <dom-module id="data-loader">
   <template>
+	  <!-- url="http://127.0.0.1:5000/data/all" -->
    <iron-ajax
       auto
-      url="http://127.0.0.1:5000/data/all"
+      url="/api/data/all"
       handle-as="json"
       on-response="dataReceived"
     ></iron-ajax>
@@ -27,6 +28,7 @@
           //}
         };
       }
+
       dataReceived(evt) {
 	let full_entries_list = evt.detail.response.response; 
 	this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));

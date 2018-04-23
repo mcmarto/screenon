@@ -32,9 +32,9 @@ def close_db(error):
     if hasattr(g, "sqlite_db"):
         g.sqlite_db.close()
 
-@app.route("/")
-def render_index():
-    return render_template("index.html")
+#@app.route("/")
+#def render_index():
+#    return render_template("index.html")
 
 @app.route("/data/last-instant")
 def retrieve_last_instant():
