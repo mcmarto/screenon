@@ -3,18 +3,21 @@
 <dom-module id="cumulated-chart">
   <template>
     <style>
-      .canvas-container {
-        width: calc(100vw / 2 - 5vw);
-        min-width: 400px;
-        height: calc(100vh / 3);
-        max-height: 400px;
-      }
+      /*.canvas-container {*/
+        /*width: calc(100vw / 2 - 5vw);*/
+        /*min-width: 400px;*/
+        /*height: calc(100vh / 3);*/
+        /*max-height: 400px;*/
+      /*}*/
     </style>
     <p>Total time: [[total_time_seconds]] seconds ~ [[total_time_hours]]</p>
-    <!-- https://stackoverflow.com/questions/40529006/chartjs-and-polymer-1-7-0/40534016#40534016 -->
-    <div class="canvas-container">
-    <canvas id="cumulatedchart" width="700" height="400"></canvas>
-    </div>
+       <px-vis-timeseries
+         chart-data="[[chartData]]"
+	 height="450"
+         show-tooltip
+         hide-register
+         series-config="[[seriesConfig]]">
+       </px-vis-timeseries>
   </template>
   <script>
     class CumulatedChart extends Polymer.Element {
@@ -28,23 +31,12 @@
       _dataChanged(new_data) {
          console.log("cumulated-chart", "dataChanged", new_data, this.mychart);
          if(!new_data) return;
-         if(this.mychart) {
-           this.mychart.destroy();
-           console.log("cumulated-chart", "destroyed previous mychart reference!");
-         }
 	 this.total_time_seconds = Math.round(new_data[new_data.length-1].value);
 	 this.total_time_hours = `${Math.floor(this.total_time_seconds/60/60)} hours ${Math.floor((this.total_time_seconds/60)%60)} minutes`;
-         this.mychart = new Chart(this.$.cumulatedchart, {
-          type: "line",
-          data: {
-            labels: new_data.map(entry => moment.unix(entry.instant).format("HH mm ss")),
-            datasets: [{
-              label: "screen time (cumulated)",
-              data: new_data.map(entry => { return {x: entry.instant, y: Math.round(entry.value)}}),
-              backgroundColor: "grey"
-	    }]
-          }
-	 }); 
+         this.chartData = new_data.map(entry => { return {x: entry.instant*1000, y: Math.round(entry.value)}});
+          this.seriesConfig = { "y":
+                  {name:"cumulated screen usage", x: "x", y: "y"}
+          };
       }
     }
     window.customElements.define(CumulatedChart.is, CumulatedChart);
