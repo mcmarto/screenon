@@ -6,7 +6,9 @@
     "iron-ajax": "^2.1.3",
     "chart.js": "^2.7.2",
     "px-tabs": "^2.1.2",
-    "px-datetime-picker": "^2.2.1"
+    "px-datetime-picker": "^2.2.1",
+    "px-vis-timeseries": "^4.0.0",
+    "px-vis-xy-chart": "^4.0.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",
