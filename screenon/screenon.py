@@ -59,6 +59,24 @@ def show_entries():
     serialized_entries = [{"instant": float(entry[0]), "on_off": bool(int(entry[1]))} for entry in entries]
     return jsonify({"response": serialized_entries})
 
+@app.route("/data/after/<instant>")
+@cross_origin()
+def show_entries_after_instant(instant):
+    db = get_db()
+    cur = db.execute("select * from screenon where instant > ? order by instant asc", (instant, ))
+    entries = cur.fetchall()
+    serialized_entries = [{"instant": float(entry[0]), "on_off": bool(int(entry[1]))} for entry in entries]
+    return jsonify({"response": serialized_entries})
+
+@app.route("/data/between/<start_instant>/and/<end_instant>")
+@cross_origin()
+def show_entries_between_instants(start_instant, end_instant):
+    db = get_db()
+    cur = db.execute("select * from screenon where instant >= ? and instant <= ? order by instant asc", (start_instant, end_instant))
+    entries = cur.fetchall()
+    serialized_entries = [{"instant": float(entry[0]), "on_off": bool(int(entry[1]))} for entry in entries]
+    return jsonify({"response": serialized_entries})
+
 @app.route("/data", methods=["POST"])
 def add_entry():
     db = get_db()
