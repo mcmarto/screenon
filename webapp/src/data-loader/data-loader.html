@@ -4,10 +4,9 @@
 
 <dom-module id="data-loader">
   <template>
-	  <!-- url="http://127.0.0.1:5000/data/all" -->
    <iron-ajax
       auto
-      url="/api/data/all"
+      url=[[url]]
       handle-as="json"
       on-response="dataReceived"
     ></iron-ajax>
@@ -22,15 +21,16 @@
       static get is() { return 'data-loader'; }
       static get properties() {
         return {
-          //prop1: {
-          //  type: String,
-          //  value: 'screen-on-app'
-          //}
+            url: {
+                type: String,
+                value: "http://127.0.0.1:5000/data/after/"+(moment().subtract(7, "days"))
+                // value: "/api/data/after/"+(moment().subtract(7, "days"))
+            }
         };
       }
 
       dataReceived(evt) {
-	let full_entries_list = evt.detail.response.response; 
+	let full_entries_list = evt.detail.response.response;
 	this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));
       }
     }
