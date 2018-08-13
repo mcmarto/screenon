@@ -9,7 +9,8 @@
       auto
       url=[[url]]
       handle-as="json"
-      on-response="dataReceived"
+      ignore-on-response="dataReceived"
+      on-response="mockReceived"
     ></iron-ajax>
   </template>
 
@@ -33,6 +34,20 @@
       dataReceived(evt) {
 	let full_entries_list = evt.detail.response.response;
 	this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));
+      }
+
+      mockReceived(evt) {
+          let first_instant = moment().subtract(7, "days")/1000;
+          let full_entries_list = [];
+          let current_instant = first_instant;
+          let current_status = false;
+          for(let i=0; i<1500; i++) {
+              full_entries_list.push({instant: current_instant, on_off: current_status});
+
+              current_instant = current_instant + Math.random()*1000;
+              current_status = !current_status;
+          }
+          this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));
       }
     }
 

@@ -4,6 +4,7 @@
 <link rel="import" href="../cumulated-chart/cumulated-chart.html">
 <link rel="import" href="../distribution-chart/distribution-chart.html">
 <link rel="import" href="../../bower_components/px-datetime-picker/px-datetime-picker.html">
+<link rel="import" href="../../bower_components/px-rangepicker/px-rangepicker.html">
 <link rel="import" href="../../bower_components/px-tabs/px-tabs.html">
 <link rel="import" href="../../bower_components/px-vis-timeseries/px-vis-timeseries.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
@@ -19,6 +20,16 @@
         </style>
         <h2>Screen-On - how much are you using your phone?</h2>
         <data-loader on-data-received="fill_table"></data-loader>
+        <px-rangepicker
+                hide-time
+                hide-presets
+                show-buttons
+                block-future-dates
+                show-field-titles
+                date-format="YYYY/MM/DD"
+                min-date="[[min_date]]"
+                max-date="[[max_date]]"
+                on-moment-obj-changed="update_selected_day"></px-rangepicker>
         <px-datetime-picker
                 hide-time
                 hide-presets
@@ -30,14 +41,10 @@
                 max-date="[[max_date]]"
                 on-moment-obj-changed="update_selected_day"
         ></px-datetime-picker>
-        <div style="height: fit-content">
-            <!-- <bar-chart data="[[grouped_per_day]]"></bar-chart> -->
-
-        </div>
         <div>
             <px-tabs selected="{{selected_chart}}">
                 <px-tab id="tab2">Screen changes</px-tab>
-                <px-tab id="tab1">Cumulated phone usage</px-tab>
+                <px-tab id="tab1">Usage per day</px-tab>
                 <px-tab id="tab3">Distribution of phone usage</px-tab>
             </px-tabs>
             <iron-pages selected="[[selected_chart]]">
@@ -57,6 +64,9 @@
                     <distribution-chart data="[[distribution_per_day]]"></distribution-chart>
                 </div>
             </iron-pages>
+            <template is="dom-if" if="[[show_loading]]">
+                <div>[[loading_text]]</div>
+            </template>
         </div>
     </template>
     <script>
@@ -71,36 +81,61 @@
 
             static get properties() {
                 return {
+                    // all the data
+                    formatted_json: {
+                        type: Array
+                    },
+                    // data group by day
                     grouped_per_day: {
                         type: Array, value: []
                     },
+                    // the currently selected chart/tab. utility for <px-tabs>/<iron-pages>
                     selected_chart: {
                         type: String, value: "tab2"
+                    },
+                    // handle the "Loading" / "No Data" message
+                    show_loading: {
+                        type: Boolean, value: true
+                    },
+                    loading_text: {
+                        type: String, value: "Loading..."
                     }
                 };
             }
 
             fill_table(evt) {
                 console.log(evt);
-                this.formatted_json = evt.detail;
-                this.min_date = moment.unix(evt.detail[0].instant);
-                this.max_date = moment.unix(evt.detail[evt.detail.length - 1].instant).add(1, "day");
-                this.grouped_per_day = group_by_day(evt.detail);
-                const x = this.grouped_per_day.map(entry => {
+                let formatted_json = evt.detail;
+                if(formatted_json.length === 0) {
+                    // stop here, as there are no data.
+                    this.set("show_loading", true);
+                    this.set("loading_text", "No data in the requested time interval");
+                    return;
+                }
+                this.set("show_loading", false);
+                this.set("formatted_json", formatted_json);
+                this.set("selected_chart", 1); // select tab: "usage per day"
+
+                this.set("min_date", moment.unix(formatted_json[0].instant));
+                this.set("max_date", moment.unix(formatted_json[formatted_json.length - 1].instant).add(1, "day"));
+                this.fill_group_by_day(formatted_json);
+            }
+
+            fill_group_by_day(entries) {
+                this.grouped_per_day = group_by_day(entries);
+                const max_of_day = this.grouped_per_day.map(entry => {
                     const day = entry.interval;
-                    const cumulated = cumulated_time(filter_by_day(this.formatted_json, day));
+                    const cumulated = cumulated_time(filter_by_day(entries, day));
                     return cumulated[cumulated.length - 1];
                 });
-                this.chartData = this.grouped_per_day.map((entry, i) => {
-                    console.log("chart data", x[i]);
+                this.set("chartData", this.grouped_per_day.map((entry, i) => {
                     return {
                         interval: moment(entry.interval, "YYYY MM DD").valueOf(),
                         value: entry.value,
-                        cumulated: x[i].value
+                        cumulated: max_of_day[i].value
                     };
-                });
-                ;
-                this.seriesConfig = {
+                }));
+                this.set("seriesConfig", {
                     "value": {
                         name: "daily screen changes",
                         x: "interval",
@@ -108,13 +143,13 @@
                         "axis": {"id": "axis1", "side": "left", "number": "1"}
                     },
                     "cumulated": {
-                        name: "daily screen usage",
+                        name: "daily screen usage (seconds)",
                         x: "interval",
                         y: "cumulated",
                         "axis": {"id": "axis2", "side": "right", "number": "2"},
                         color: "orange"
                     }
-                }
+                });
             }
 
             fill_cumulated(evt) {

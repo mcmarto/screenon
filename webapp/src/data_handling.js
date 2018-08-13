@@ -31,15 +31,15 @@ function _group_by(data, ranges_number, time_format) {
     result[hour_of_entry].hits += 1;
   });
 
-  return result;  
+  return result;
 }
 
 function group_by_day(data) {
   //return _group_by(data, 32, "YYYY MM DD")
   let result = [];
-  
+
   data.forEach(entry => {
-    
+
     let entry_interval = moment.unix(entry.instant).format("YYYY MM DD");
     if(result[entry_interval]) {
         result[entry_interval].value += 1;
@@ -72,7 +72,7 @@ function filter_by_day(data, requested_day) {
     }
   });
 
-  return result;  
+  return result;
 }
 
 function merge_consecutive_entries(data) {
@@ -144,7 +144,7 @@ function duration_distribution(single_day_data) {
   let distribution = [];
   let sorted_durations = Object.keys(cache).sort();
   sorted_durations.forEach(delta => {
-    if(delta < 200) distribution.push({delta, hits: cache[delta]});
+    distribution.push({delta, hits: cache[delta]});
   });
   return distribution;
 }
