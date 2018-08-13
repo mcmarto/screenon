@@ -1,5 +1,6 @@
-<link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html" />
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
+<script src="../../bower_components/moment/moment.js"></script>
 <!-- <script src="../data_handling.js"></script> -->
 
 <dom-module id="data-loader">
@@ -23,8 +24,8 @@
         return {
             url: {
                 type: String,
-                value: "http://127.0.0.1:5000/data/after/"+(moment().subtract(7, "days"))
-                // value: "/api/data/after/"+(moment().subtract(7, "days"))
+                // value: `http://192.168.1.100:5000/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
+                value: `/api/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
             }
         };
       }
