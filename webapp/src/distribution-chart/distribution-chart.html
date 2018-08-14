@@ -1,9 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/px-vis-xy-chart/px-vis-xy-chart.html" >
+<link rel="import" href="../../bower_components/px-vis-xy-chart/px-vis-xy-chart.html">
 
 <dom-module id="distribution-chart">
     <template>
-       <px-vis-xy-chart
+        <button on-click="switch_chart_type">Switch to [[chartType]] chart</button>
+        <i>The <b>Logarithmic chart</b> will compress time deltas over 60 seconds, leaving more space
+        for intervals under 60 seconds. Switch to this type of chart to better appreciate short-time usages.
+        <b>Normal chart</b>, instead, won't perform any kind of compression on data. It is better suited
+        to explore the distribution of longer usage intervals.</i>
+        <px-vis-xy-chart
                 chart-data="[[chartData]]"
                 show-tooltip
                 hide-register
@@ -38,21 +43,34 @@
 
             static get properties() {
                 return {
-                    data: {type: Array, observer: "_dataChanged"}
+                    data: {type: Array, observer: "_dataChanged"},
+                    chartType: {type: String, value: "Normal"},
+                    isLog: {type: Boolean, value: true}
                 };
+            }
+
+            switch_chart_type() {
+                if(this.chartType === "Logarithmic") {
+                    this.set("chartType", "Normal");
+                    this.set("isLog", true);
+                }
+                else {
+                    this.set("chartType", "Logarithmic");
+                    this.set("isLog", false);
+                }
+                this._dataChanged(this.data);
             }
 
             _dataChanged(new_data) {
                 console.log("distribution-chart", "dataChanged", new_data);
                 if (!new_data) {
                     this.set("chartData", []);
-
                 }
                 else {
                     this.set("chartData", new_data
                         .map(entry => {
                             return {
-                                x: new Number(entry.delta),
+                                x: this.isLog ? Math.log(new Number(entry.delta))/Math.log(60) : new Number(entry.delta),
                                 y: entry.hits,
                                 delta: new Number(entry.delta),
                                 hits: entry.hits
@@ -62,6 +80,7 @@
                 }
                 this.set("seriesConfig", {
                     "deltaHits": {
+                        type: "scatter",
                         name: "hits of duration",
                         x: "x",
                         y: "y",
