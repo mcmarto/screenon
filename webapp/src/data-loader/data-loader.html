@@ -1,7 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html" />
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
 <script src="../../bower_components/moment/moment.js"></script>
-<!-- <script src="../data_handling.js"></script> -->
 
 <dom-module id="data-loader">
   <template>
@@ -9,8 +8,8 @@
       auto
       url=[[url]]
       handle-as="json"
-      ignore-on-response="dataReceived"
-      on-response="mockReceived"
+      on-response="dataReceived"
+      mock-on-response="mockReceived"
     ></iron-ajax>
   </template>
 
@@ -26,7 +25,7 @@
             url: {
                 type: String,
                 // value: `http://192.168.1.100:5000/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
-                value: `/api/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
+                value: `/api/data/after/${(moment().subtract(7, "days").startOf("day") / 1000).toFixed(0)}`
             }
         };
       }
@@ -37,7 +36,7 @@
       }
 
       mockReceived(evt) {
-          let first_instant = moment().subtract(7, "days")/1000;
+          let first_instant = moment().subtract(7, "days").startOf("day")/1000;
           let full_entries_list = [];
           let current_instant = first_instant;
           let current_status = false;

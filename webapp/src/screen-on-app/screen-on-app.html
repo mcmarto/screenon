@@ -8,7 +8,6 @@
 <link rel="import" href="../../bower_components/px-tabs/px-tabs.html">
 <link rel="import" href="../../bower_components/px-vis-timeseries/px-vis-timeseries.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
-<script src="../../bower_components/chart.js/dist/Chart.bundle.min.js"></script>
 <script src="../data_handling.js"></script>
 
 <dom-module id="screen-on-app">
@@ -20,16 +19,16 @@
         </style>
         <h2>Screen-On - how much are you using your phone?</h2>
         <data-loader on-data-received="fill_table"></data-loader>
-        <px-rangepicker
-                hide-time
-                hide-presets
-                show-buttons
-                block-future-dates
-                show-field-titles
-                date-format="YYYY/MM/DD"
-                min-date="[[min_date]]"
-                max-date="[[max_date]]"
-                on-moment-obj-changed="update_selected_day"></px-rangepicker>
+        <!--<px-rangepicker-->
+                <!--hide-time-->
+                <!--hide-presets-->
+                <!--show-buttons-->
+                <!--block-future-dates-->
+                <!--show-field-titles-->
+                <!--date-format="YYYY/MM/DD"-->
+                <!--min-date="[[min_date]]"-->
+                <!--max-date="[[max_date]]"-->
+                <!--on-moment-obj-changed="update_selected_range"></px-rangepicker>-->
         <px-datetime-picker
                 hide-time
                 hide-presets
@@ -116,7 +115,7 @@
                 this.set("formatted_json", formatted_json);
                 this.set("selected_chart", 1); // select tab: "usage per day"
 
-                this.set("min_date", moment.unix(formatted_json[0].instant));
+                this.set("min_date", moment.unix(formatted_json[0].instant).startOf("day"));
                 this.set("max_date", moment.unix(formatted_json[formatted_json.length - 1].instant).add(1, "day"));
                 this.fill_group_by_day(formatted_json);
             }
