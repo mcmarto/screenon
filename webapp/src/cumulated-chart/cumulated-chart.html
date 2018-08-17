@@ -11,14 +11,17 @@
         /*max-height: 400px;*/
       /*}*/
     </style>
-    <p>Total time: [[total_time_seconds]] seconds ~ [[total_time_hours]]</p>
-       <px-vis-timeseries
-         chart-data="[[chartData]]"
-	 height="450"
-         show-tooltip
-         hide-register
-         series-config="[[seriesConfig]]">
-       </px-vis-timeseries>
+      <p>Total time: [[total_time_seconds]] seconds ~ [[total_time_hours]]</p>
+      <px-vis-timeseries
+              x-axis-type="timeLocal"
+              tooltip-config="[[timezoneConfig]]"
+              register-config="[[timezoneConfig]]"
+              chart-data="[[chartData]]"
+              height="450"
+              show-tooltip
+              hide-register
+              series-config="[[seriesConfig]]">
+      </px-vis-timeseries>
   </template>
   <script>
     class CumulatedChart extends Polymer.Element {
@@ -43,7 +46,7 @@
                     name: "usage (seconds)",
                     x: "x",
                     y: "y",
-                    "axis": {"id": "axis1", "side": "left", "number": "1"}
+                    "axis": {"id": "axis1", "side": "left", "number": "1"},
                 },
                 "changes": {
                     name: "changes (absolute)",
@@ -52,6 +55,10 @@
                     "axis": {"id": "axis2", "side": "right", "number": "2"},
                     color: "orange"
                 }
+            };
+            this.timezoneConfig = {
+                // timezone: "Europe/Rome"
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
             };
         }
     }

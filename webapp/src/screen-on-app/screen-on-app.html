@@ -52,6 +52,9 @@
                 </div>
                 <div id="tab2-content" style="height: 600px">
                     <px-vis-timeseries
+                            x-axis-type="timeLocal"
+                            tooltip-config="[[timezoneConfig]]"
+                            register-config="[[timezoneConfig]]"
                             chart-data="[[chartData]]"
                             height="350"
                             show-tooltip
@@ -98,6 +101,13 @@
                     },
                     loading_text: {
                         type: String, value: "Loading..."
+                    },
+                    // timezone stuff
+                    timezoneConfig: {
+                        type: Object,
+                        value: {
+                            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                        }
                     }
                 };
             }
