@@ -32,9 +32,21 @@ def close_db(error):
     if hasattr(g, "sqlite_db"):
         g.sqlite_db.close()
 
-#@app.route("/")
-#def render_index():
-#    return render_template("index.html")
+
+@app.route("/data/instants")
+def retrieve_first_and_last_instants():
+    db = get_db()
+    cur = db.execute("select min(instant), max(instant) from screenon")
+    try:
+        entries = cur.fetchall()
+        first_instant = entries[0][0]
+        last_instant = entries[0][1]
+    except IndexError:
+        first_instant = 0
+        last_instant = 0
+    return jsonify({
+        "first_instant": float(first_instant),
+        "last_instant": float(last_instant)})
 
 @app.route("/data/last-instant")
 def retrieve_last_instant():
