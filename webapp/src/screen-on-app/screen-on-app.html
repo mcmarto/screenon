@@ -4,11 +4,11 @@
 <link rel="import" href="../cumulated-chart/cumulated-chart.html">
 <link rel="import" href="../distribution-chart/distribution-chart.html">
 <link rel="import" href="../../bower_components/px-datetime-picker/px-datetime-picker.html">
-<link rel="import" href="../../bower_components/px-rangepicker/px-rangepicker.html">
 <link rel="import" href="../../bower_components/px-tabs/px-tabs.html">
 <link rel="import" href="../../bower_components/px-vis-timeseries/px-vis-timeseries.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <script src="../data_handling.js"></script>
+<link rel="import" href="screen-on-range-picker.html" />
 
 <dom-module id="screen-on-app">
     <template>
@@ -18,17 +18,12 @@
             }
         </style>
         <h2>Screen-On - how much are you using your phone?</h2>
-        <data-loader on-data-received="fill_table"></data-loader>
-        <!--<px-rangepicker-->
-                <!--hide-time-->
-                <!--hide-presets-->
-                <!--show-buttons-->
-                <!--block-future-dates-->
-                <!--show-field-titles-->
-                <!--date-format="YYYY/MM/DD"-->
-                <!--min-date="[[min_date]]"-->
-                <!--max-date="[[max_date]]"-->
-                <!--on-moment-obj-changed="update_selected_range"></px-rangepicker>-->
+
+        <screen-on-range-picker
+                min-date="{{min_date}}"
+                max-date="{{max_date}}"
+                on-data-received="fill_table"></screen-on-range-picker>
+
         <px-datetime-picker
                 hide-time
                 hide-presets

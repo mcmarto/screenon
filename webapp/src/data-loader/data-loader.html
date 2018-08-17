@@ -22,6 +22,10 @@
       static get is() { return 'data-loader'; }
       static get properties() {
         return {
+            interval: {
+                type: Object,
+                observer: "intervalChanged"
+            },
             url: {
                 type: String,
                 // value: `http://192.168.1.100:5000/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
@@ -30,10 +34,22 @@
         };
       }
 
-      dataReceived(evt) {
-	let full_entries_list = evt.detail.response.response;
-	this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));
+      intervalChanged(new_interval) {
+          console.log("intervalChanged!", new_interval);
+          let start_time = (new_interval.start_time.startOf("day")/1000).toFixed(0);
+          let end_time = (new_interval.end_time.startOf("day")/1000).toFixed(0);
+
+          this.set("url", `/api/data/between/${start_time}/and/${end_time}`);
       }
+
+        dataReceived(evt) {
+            let full_entries_list = evt.detail.response.response;
+            this.dispatchEvent(new CustomEvent('data-received', {
+                detail: fix_data(full_entries_list),
+                bubbles: true,
+                composed: true
+            }));
+        }
 
       mockReceived(evt) {
           let first_instant = moment().subtract(7, "days").startOf("day")/1000;
@@ -46,7 +62,11 @@
               current_instant = current_instant + Math.random()*1000;
               current_status = !current_status;
           }
-          this.dispatchEvent(new CustomEvent('data-received', {detail: fix_data(full_entries_list)}));
+          this.dispatchEvent(new CustomEvent('data-received', {
+              detail: fix_data(full_entries_list),
+              bubbles: true,
+              composed: true
+          }));
       }
     }
 
