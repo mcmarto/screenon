@@ -41,7 +41,7 @@
             }
 
             dataReceived(evt) {
-                let raw_data = evt.detail.response.response;
+                let raw_data = evt.detail.response;
                 let first_moment = moment.unix(raw_data.first_instant).startOf("day");
                 let last_moment = moment.unix(raw_data.last_instant).endOf("day");
 
