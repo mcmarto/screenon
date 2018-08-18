@@ -31,8 +31,8 @@
                 block-future-dates
                 show-field-titles
                 date-format="YYYY/MM/DD"
-                min-date="[[min_date]]"
-                max-date="[[max_date]]"
+                min-date="[[singleday_min_date]]"
+                max-date="[[singleday_max_date]]"
                 on-moment-obj-changed="update_selected_day"
         ></px-datetime-picker>
         <div>
@@ -120,8 +120,8 @@
                 this.set("formatted_json", formatted_json);
                 this.set("selected_chart", 1); // select tab: "usage per day"
 
-                this.set("min_date", moment.unix(formatted_json[0].instant).startOf("day"));
-                this.set("max_date", moment.unix(formatted_json[formatted_json.length - 1].instant).add(1, "day"));
+                this.set("singleday_min_date", moment.unix(formatted_json[0].instant).startOf("day"));
+                this.set("singleday_max_date", moment.unix(formatted_json[formatted_json.length - 1].instant).add(1, "day"));
                 this.fill_group_by_day(formatted_json);
             }
 

@@ -16,7 +16,6 @@
                 hide-time
                 hide-presets
                 show-buttons
-                block-future-dates
                 show-field-titles
                 date-format="YYYY/MM/DD"
                 from-moment="[[minDate]]"
@@ -67,7 +66,7 @@
                 console.log("update selected range", evt, evt.detail);
                 this.set("interval", {
                     "start_time": evt.detail.fromMoment.startOf("day"),
-                    "end_time": evt.detail.toMoment.add(1, "day").endOf("day")
+                    "end_time": evt.detail.toMoment.endOf("day")
                 });
             }
         }
