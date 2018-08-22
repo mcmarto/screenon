@@ -1,0 +1,63 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/px-vis-timeseries/px-vis-timeseries.html">
+
+<dom-module id="cumulated-chart">
+    <template>
+        <p>Total time: [[total_time_seconds]] seconds ~ [[total_time_hours]]</p>
+        <px-vis-timeseries
+                x-axis-type="timeLocal"
+                tooltip-config="[[timezoneConfig]]"
+                register-config="[[timezoneConfig]]"
+                chart-data="[[chartData]]"
+                height="450"
+                show-tooltip
+                hide-register
+                series-config="[[seriesConfig]]">
+        </px-vis-timeseries>
+    </template>
+    <script>
+        class CumulatedChart extends Polymer.Element {
+            static get is() {
+                return "cumulated-chart"
+            }
+
+            static get properties() {
+                return {
+                    data: {type: Array, observer: "_dataChanged"}
+                };
+            }
+
+            _dataChanged(new_data) {
+                console.log("cumulated-chart", "dataChanged", new_data, this.mychart);
+                if (!new_data) return;
+                this.total_time_seconds = Math.round(new_data[new_data.length - 1].value);
+                this.total_time_hours = `${Math.floor(this.total_time_seconds / 60 / 60)} hours ${Math.floor((this.total_time_seconds / 60) % 60)} minutes`;
+                let counter = 0;
+                this.chartData = new_data.map(entry => {
+                    return {x: entry.instant * 1000, y: Math.round(entry.value), y2: counter++}
+                });
+                this.seriesConfig = {
+                    "usage": {
+                        name: "usage (seconds)",
+                        x: "x",
+                        y: "y",
+                        "axis": {"id": "axis1", "side": "left", "number": "1"},
+                    },
+                    "changes": {
+                        name: "changes (absolute)",
+                        x: "x",
+                        y: "y2",
+                        "axis": {"id": "axis2", "side": "right", "number": "2"},
+                        color: "orange"
+                    }
+                };
+                this.timezoneConfig = {
+                    // timezone: "Europe/Rome"
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+            }
+        }
+
+        window.customElements.define(CumulatedChart.is, CumulatedChart);
+    </script>
+</dom-module>

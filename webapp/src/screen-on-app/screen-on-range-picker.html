@@ -1,0 +1,76 @@
+<link rel="import" href="../../bower_components/px-rangepicker/px-rangepicker.html">
+<script src="../../bower_components/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
+
+<dom-module id="screen-on-range-picker">
+    <template>
+        <iron-ajax
+                auto
+                url="[[url]]"
+                handle-as="json"
+                on-response="dataReceived"
+                mock-on-response="mockReceived"></iron-ajax>
+
+        <data-loader interval="[[interval]]"></data-loader>
+
+        <px-rangepicker
+                hide-time
+                hide-presets
+                show-buttons
+                show-field-titles
+                date-format="YYYY/MM/DD"
+                from-moment="[[minDate]]"
+                to-moment="[[maxDate]]"
+                min-date="{{minDateStr}}"
+                max-date="{{maxDateStr}}"
+                on-px-datetime-range-submitted="update_selected_range"></px-rangepicker>
+    </template>
+    <script>
+        class ScreenOnRangePicker extends Polymer.Element {
+            static get is() {
+                return 'screen-on-range-picker';
+            }
+
+            static get properties() {
+                return {
+                    url: {
+                        type: String,
+                        // value: `http://192.168.1.100:5000/data/instants`
+                        value: `/api/data/instants`
+                    }
+                };
+            }
+
+            dataReceived(evt) {
+                let raw_data = evt.detail.response;
+                let first_moment = moment.unix(raw_data.first_instant).startOf("day");
+                let last_moment = moment.unix(raw_data.last_instant).endOf("day");
+
+                this.set("minDate", first_moment);
+                this.set("maxDate", last_moment);
+                this.set("minDateStr", first_moment.toISOString());
+                this.set("maxDateStr", last_moment.toISOString());
+            }
+
+            mockReceived(evt) {
+                let startOf = moment().subtract(7, "days").startOf("day");
+                let endOf = moment().endOf("day");
+
+                this.set("minDate", startOf);
+                this.set("maxDate", endOf);
+                this.set("minDateStr", startOf.toISOString());
+                this.set("maxDateStr", endOf.toISOString());
+                console.log(this.get("minDateStr"), this.get("maxDateStr"));
+            }
+
+            update_selected_range(evt) {
+                console.log("update selected range", evt, evt.detail);
+                this.set("interval", {
+                    "start_time": evt.detail.fromMoment.startOf("day"),
+                    "end_time": evt.detail.toMoment.endOf("day")
+                });
+            }
+        }
+
+        window.customElements.define(ScreenOnRangePicker.is, ScreenOnRangePicker);
+    </script>
+</dom-module>
