@@ -1,75 +1,78 @@
-<link rel="import" href="../../bower_components/polymer/polymer-element.html" />
-<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
+<link rel="import" href="../../bower_components/polymer/polymer-element.html"/>
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html"/>
 <script src="../../bower_components/moment/moment.js"></script>
 
 <dom-module id="data-loader">
-  <template>
-   <iron-ajax
-      auto
-      url=[[url]]
-      handle-as="json"
-      on-response="dataReceived"
-      mock-on-response="mockReceived"
-    ></iron-ajax>
-  </template>
+    <template>
+        <iron-ajax
+                auto
+                url=[[url]]
+                handle-as="json"
+                on-response="dataReceived"
+                mock-on-response="mockReceived"
+        ></iron-ajax>
+    </template>
 
-  <script>
-    /**
-     * @customElement
-     * @polymer
-     */
-    class DataLoader extends Polymer.Element {
-      static get is() { return 'data-loader'; }
-      static get properties() {
-        return {
-            interval: {
-                type: Object,
-                observer: "intervalChanged"
-            },
-            url: {
-                type: String,
-                // value: `http://192.168.1.100:5000/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
-                value: `/api/data/after/${(moment().subtract(7, "days").startOf("day") / 1000).toFixed(0)}`
+    <script>
+        /**
+         * @customElement
+         * @polymer
+         */
+        class DataLoader extends Polymer.Element {
+            static get is() {
+                return 'data-loader';
             }
-        };
-      }
 
-      intervalChanged(new_interval) {
-          console.log("intervalChanged!", new_interval);
-          let start_time = (new_interval.start_time.startOf("day")/1000).toFixed(0);
-          let end_time = (new_interval.end_time.startOf("day")/1000).toFixed(0);
+            static get properties() {
+                return {
+                    interval: {
+                        type: Object,
+                        observer: "intervalChanged"
+                    },
+                    url: {
+                        type: String,
+                        // value: `http://192.168.1.100:5000/data/after/${(moment().subtract(7, "days") / 1000).toFixed(0)}`
+                        value: `/api/data/after/${(moment().subtract(7, "days").startOf("day") / 1000).toFixed(0)}`
+                    }
+                };
+            }
 
-          this.set("url", `/api/data/between/${start_time}/and/${end_time}`);
-      }
+            intervalChanged(new_interval) {
+                console.log("intervalChanged!", new_interval);
+                let start_time = (new_interval.start_time.startOf("day") / 1000).toFixed(0);
+                let end_time = (new_interval.end_time.startOf("day") / 1000).toFixed(0);
 
-        dataReceived(evt) {
-            let full_entries_list = evt.detail.response.response;
-            this.dispatchEvent(new CustomEvent('data-received', {
-                detail: fix_data(full_entries_list),
-                bubbles: true,
-                composed: true
-            }));
+                this.set("url", `/api/data/between/${start_time}/and/${end_time}`);
+            }
+
+            dataReceived(evt) {
+                let full_entries_list = evt.detail.response.response;
+                this.dispatchEvent(new CustomEvent('data-received', {
+                    detail: fix_data(full_entries_list),
+                    bubbles: true,
+                    composed: true
+                }));
+            }
+
+            mockReceived(evt) {
+                let first_instant = moment().subtract(7, "days").startOf("day") / 1000;
+                let full_entries_list = [];
+                let current_instant = first_instant;
+                let current_status = false;
+                for (let i = 0; i < 1500; i++) {
+                    full_entries_list.push({instant: current_instant, on_off: current_status});
+
+                    current_instant = current_instant + Math.random() * 1000;
+                    current_status = !current_status;
+                }
+                this.dispatchEvent(new CustomEvent('data-received', {
+                    detail: fix_data(full_entries_list),
+                    bubbles: true,
+                    composed: true
+                }));
+            }
         }
 
-      mockReceived(evt) {
-          let first_instant = moment().subtract(7, "days").startOf("day")/1000;
-          let full_entries_list = [];
-          let current_instant = first_instant;
-          let current_status = false;
-          for(let i=0; i<1500; i++) {
-              full_entries_list.push({instant: current_instant, on_off: current_status});
-
-              current_instant = current_instant + Math.random()*1000;
-              current_status = !current_status;
-          }
-          this.dispatchEvent(new CustomEvent('data-received', {
-              detail: fix_data(full_entries_list),
-              bubbles: true,
-              composed: true
-          }));
-      }
-    }
-
-    window.customElements.define(DataLoader.is, DataLoader);
-  </script>
+        window.customElements.define(DataLoader.is, DataLoader);
+    </script>
 </dom-module>
