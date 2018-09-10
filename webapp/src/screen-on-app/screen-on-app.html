@@ -191,8 +191,7 @@
             fill_cumulated(evt) {
                 const index = evt.detail.index;
                 const day = this.grouped_per_day[index].interval;
-                // this.cumulated_per_day = cumulated_time(filter_by_day(this.formatted_json, day));
-                this.cumulated_per_day = unfiltered_cumulated_time(filter_by_day(this.formatted_json, day));
+                this.cumulated_per_day = cumulated_time(filter_by_day(this.formatted_json, day));
             }
 
             fill_distribution(evt) {

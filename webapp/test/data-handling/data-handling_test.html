@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>screen-on-app test</title>
+
+    <script src="../../../webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../../web-component-tester/browser.js"></script>
+
+    <script src="../../src/data_handling.js"></script>
+    <script src="../../src/../bower_components/moment/moment.js"></script>
+</head>
+<body>
+<script>
+    suite("cumulated_time", () => {
+        test("empty array", function() {
+            assert.deepEqual(cumulated_time([]), []);
+        });
+
+        test("`value` contains instant deltas", () => {
+            let START = 12345;
+            let input = [
+                {instant: START, on_off: true},
+                {instant: START+10, on_off: false},
+                {instant: START+50, on_off: true},
+                {instant: START+100, on_off: false},
+                {instant: START+200, on_off: true}
+            ];
+
+            let result = cumulated_time(input);
+
+            assert.deepEqual(result, [
+                // t0
+                {instant: START, value: 0},
+                // t1
+                {instant: START+10, value: 10},
+                // t2
+                {instant: START+50, value: 10},
+                // t3
+                {instant: START+100, value: 60},
+                // t4
+                {instant: START+200, value: 60}
+            ]);
+        })
+    });
+</script>
+</body>
+</html>

@@ -1,23 +1,28 @@
 const turned_off = (on_off) => on_off === false;
+const turned_on = (on_off) => on_off === true;
 
 function cumulated_time(data) {
-  let cumulated = [];
-  let currentTotal = 0;
-  let last_entry = null;
-  cumulated.push({instant: data[0].instant, value: 0});
-  data.forEach(entry => {
-    if(turned_off(entry.on_off)) {
-	// TODO: for the time being, we decide to ignore the time before
-	// the first screen change event if the screen was ON
-	if(last_entry !== null) {
-	  const delta = entry.instant - last_entry.instant;
-	  currentTotal += delta;
-	  cumulated.push({instant: entry.instant, value: currentTotal});
-	}
+    if(data.length === 0) {
+        return [];
     }
-    last_entry = entry;
-  });
-  return cumulated;
+
+    let cumulated = [];
+    let currentTotal = 0;
+    let firstIsOff = turned_off(data[0].on_off);
+    let realData = firstIsOff ? data.slice(1) : data;
+    cumulated.push({instant: data[0].instant, value: 0});
+    for(let i=0; i<realData.length-1; i+=1) {
+        if(turned_on(realData[i].on_off)) {
+            let delta = realData[i+1].instant - realData[i].instant;
+            cumulated.push({instant: realData[i+1].instant, value: currentTotal + delta});
+            currentTotal += delta;
+        }
+        else {
+            cumulated.push({instant: realData[i+1].instant, value: currentTotal});
+        }
+    }
+
+    return cumulated;
 }
 
 function _group_by(data, ranges_number, time_format) {
