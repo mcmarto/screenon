@@ -166,7 +166,7 @@
             assert.deepEqual(result.map(rec => rec.on_off), [true, false, false, true, false]);
         });
 
-        test("midnight records are not added to the first day of data", () => {
+        test("does not add midnight records to the first day of data", () => {
             const morning_dayOne = moment().startOf("day").add(6, "minutes");
             const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
             let input = [
@@ -213,42 +213,28 @@
             assert.equal(duplicatedInstantsInFixedData, 0, "there should be no repeated midnight!");
         });
 
-        //
-    //     test("midnight screen change", () => {
-    //         assert.ok(false, "write me!");
-    //
-    //         const morning_dayOne = moment().startOf("day").add(6, "minutes");
-    //         const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
-    //         let input = [
-    //             {instant: morning_dayOne, on_off: true},
-    //             {instant: morning_dayOne.clone().add(12, "hours"), on_off: false},
-    //             {instant: morning_dayOne.clone().add(18, "hours"), on_off: true},
-    //             {instant: morning_dayOne.clone().add(22, "hours"), on_off: false},
-    //             {instant: morning_dayTwo, on_off: true},
-    //             {instant: morning_dayTwo.clone().add(12, "hours"), on_off: false},
-    //         ].map(hit => {
-    //             return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
-    //         });
-    //         let result = fix_data(input);
-    //
-    //         let resultLen = result.length;
-    //         assert.equal(result.length, input.length+1);
-    //         assert.equal(result[0].instant, input[0].instant);
-    //         assert.equal(result[resultLen-1-2].instant, morning_dayTwo.clone().startOf("day").valueOf()/1000);
-    //
-    //         const cache = result
-    //                 .map(hit => hit.instant)
-    //                 .reduce((prev, instant) => {
-    //                     prev[instant] = prev[instant] ? prev[instant]+1 : 1;
-    //                     return prev;
-    //                 }, {});
-    //         const duplicatedInstantsInFixedData = Object.keys(cache)
-    //             .filter((cache_key) => {
-    //                 return cache[cache_key] > 1;
-    //             }).length;
-    //         assert.equal(duplicatedInstantsInFixedData, 0, "there should be no repeated midnight (day 2)!");
-    //     });
-    //
+        test("midnight screen change", () => {
+            const morning_dayOne = moment().startOf("day").add(6, "minutes");
+            const morning_dayTwo = moment().startOf("day").add(1, "day");
+            let input = [
+                {instant: morning_dayOne, on_off: true},
+                {instant: morning_dayOne.clone().add(12, "hours"), on_off: false},
+                {instant: morning_dayOne.clone().add(18, "hours"), on_off: true},
+                {instant: morning_dayOne.clone().add(22, "hours"), on_off: false},
+                {instant: morning_dayTwo, on_off: true},
+                {instant: morning_dayTwo.clone().add(12, "hours"), on_off: false},
+            ].map(hit => {
+                return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
+            });
+            let result = fix_data(input);
+
+            const duplicatedInstantsInFixedData = duplicatedRecords(result);
+            assert.equal(duplicatedInstantsInFixedData, 1, "there should be a repeated midnight (day 2)!");
+
+            const midnightRecordIndex = indexOfInstant(result, morning_dayTwo.clone().valueOf()/1000);
+            assert.equal(result[midnightRecordIndex].on_off, !result[midnightRecordIndex+1].on_off, "the two midnight records should be different");
+            assert.equal(result[midnightRecordIndex].on_off, false, "the new midnight record should be _before_ the legit one");
+        });
 
         test("if cross-day usage, midnight record does not modify on_off status", () => {
             const morning_dayOne = moment().startOf("day").add(6, "minutes");
