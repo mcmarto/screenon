@@ -15,18 +15,18 @@
 <body>
 <script>
     suite("cumulated_time", () => {
-        test("empty array", function() {
+        test("empty array", function () {
             assert.deepEqual(cumulated_time([]), []);
         });
 
-        test("`value` contains instant deltas", () => {
+        test("start from `true`", () => {
             let START = 12345;
             let input = [
                 {instant: START, on_off: true},
-                {instant: START+10, on_off: false},
-                {instant: START+50, on_off: true},
-                {instant: START+100, on_off: false},
-                {instant: START+200, on_off: true}
+                {instant: START + 10, on_off: false},
+                {instant: START + 50, on_off: true},
+                {instant: START + 100, on_off: false},
+                {instant: START + 200, on_off: true}
             ];
 
             let result = cumulated_time(input);
@@ -35,15 +35,242 @@
                 // t0
                 {instant: START, value: 0},
                 // t1
-                {instant: START+10, value: 10},
+                {instant: START + 10, value: 10},
                 // t2
-                {instant: START+50, value: 10},
+                {instant: START + 50, value: 10},
                 // t3
-                {instant: START+100, value: 60},
+                {instant: START + 100, value: 60},
                 // t4
-                {instant: START+200, value: 60}
+                {instant: START + 200, value: 60}
+            ]);
+        });
+
+        test("start from `false`", () => {
+            let START = 12345;
+            let input = [
+                {instant: START, on_off: false},
+                {instant: START + 10, on_off: true},
+                {instant: START + 50, on_off: false},
+                {instant: START + 100, on_off: true},
+                {instant: START + 200, on_off: false}
+            ];
+
+            let result = cumulated_time(input);
+            // console.error(result.map(x => JSON.stringify(x)).join(","));
+
+            assert.deepEqual(result, [
+                // t0
+                {instant: START, value: 0},
+                // t1 is ignored, as the first value is false.
+                // {instant: START + 10, value: 0},
+                // t2
+                {instant: START + 50, value: 40},
+                // t3
+                {instant: START + 100, value: 40},
+                // t4
+                {instant: START + 200, value: 140}
             ]);
         })
+    });
+
+    suite("merge_consecutive_entries", () => {
+        test("handles empty array and one item array", () => {
+            assert.deepEqual(merge_consecutive_entries([]), []);
+            assert.deepEqual(merge_consecutive_entries([
+                {instant: 123, on_off: true}
+            ]), [
+                {instant: 123, on_off: true}
+            ]);
+        });
+
+        test("no repeated statuses", () => {
+            let input = [
+                {instant: 1, on_off: true},
+                {instant: 2, on_off: false},
+                {instant: 3, on_off: true},
+                {instant: 4, on_off: false},
+                {instant: 5, on_off: true},
+                {instant: 6, on_off: false}
+            ];
+
+            assert.deepEqual(merge_consecutive_entries(input), input);
+        });
+
+        test("repeated statuses", () => {
+            let input = [
+                {instant: 1, on_off: true},
+                {instant: 2, on_off: false},
+                {instant: 3, on_off: true},
+                {instant: 4, on_off: true},
+                {instant: 5, on_off: true},
+                {instant: 6, on_off: false},
+                {instant: 7, on_off: false},
+                {instant: 8, on_off: true},
+                {instant: 9, on_off: false},
+                {instant: 10, on_off: false},
+                {instant: 11, on_off: false}
+            ];
+            let expected = [
+                {instant: 1, on_off: true},
+                {instant: 2, on_off: false},
+                {instant: 3, on_off: true},
+                {instant: 6, on_off: false},
+                {instant: 8, on_off: true},
+                {instant: 9, on_off: false}
+            ];
+
+            let result = merge_consecutive_entries(input);
+
+            assert.deepEqual(result, expected);
+        });
+    });
+
+    let duplicatedRecords = function (result) {
+        const cache = result
+            .map(hit => hit.instant)
+            .reduce((prev, instant) => {
+                prev[instant] = prev[instant] ? prev[instant] + 1 : 1;
+                return prev;
+            }, {});
+        return Object.keys(cache)
+            .filter((cache_key) => {
+                return cache[cache_key] > 1;
+            }).length;
+    };
+
+    let indexOfInstant = function(records, instant) {
+        let index = 0;
+        while(index < records.length) {
+            if(records[index].instant === instant) {
+                return index;
+            }
+            index += 1;
+        }
+        return -1;
+    };
+
+    suite("fix_data", () => {
+        test("is robust against unsorted records", () => {
+            const morning_dayOne = moment().startOf("day").add(6, "minutes");
+            const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
+            let input = [
+                {instant: morning_dayOne.clone().add(22, "hours"), on_off: false}, // 2nd
+                {instant: morning_dayTwo.clone().add(12, "hours"), on_off: false}, // 4th
+                {instant: morning_dayTwo, on_off: true}, // 3rd
+                {instant: morning_dayOne, on_off: true}  // 1st
+            ].map(hit => {
+                return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
+            });
+            let result = fix_data(input);
+
+            assert.deepEqual(result.map(rec => rec.on_off), [true, false, false, true, false]);
+        });
+
+        test("midnight records are not added to the first day of data", () => {
+            const morning_dayOne = moment().startOf("day").add(6, "minutes");
+            const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
+            let input = [
+                {instant: morning_dayOne, on_off: true},
+                {instant: morning_dayOne.clone().add(22, "hours"), on_off: false},
+                {instant: morning_dayTwo, on_off: true},
+                {instant: morning_dayTwo.clone().add(12, "hours"), on_off: false},
+            ].map(hit => {
+                return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
+            });
+            let result = fix_data(input);
+
+            // the midnight record is not added to the first day in the period
+            assert.equal(result[0].instant, input[0].instant);
+        });
+
+        test("adds midnight records", () => {
+            const morning_dayOne = moment().startOf("day").add(6, "minutes");
+            const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
+            let input = [
+                {instant: morning_dayOne, on_off: true},
+                {instant: morning_dayOne.clone().add(12, "hours"), on_off: false},
+                {instant: morning_dayOne.clone().add(18, "hours"), on_off: true},
+                {instant: morning_dayOne.clone().add(22, "hours"), on_off: false},
+                {instant: morning_dayTwo, on_off: true},
+                {instant: morning_dayTwo.clone().add(12, "hours"), on_off: false},
+            ].map(hit => {
+                return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
+            });
+            let result = fix_data(input);
+
+            // there is one more item (the midnight record)
+            assert.equal(result.length, input.length+1);
+
+            // the midnight record is added before the morning of the second day
+            let midnightRecordIndex = indexOfInstant(result, morning_dayTwo.clone().startOf("day").valueOf()/1000);
+            assert.ok(midnightRecordIndex !== -1, "there should be a midnight record here!");
+            // the status of the midnight record should be false (from 2200 day 1, it changes 0005 day 2)
+            assert.ok(!result[midnightRecordIndex].on_off, "the midnight record should be `false`");
+            assert.ok(result[midnightRecordIndex+1].on_off, "the first record after midnight should be `true`");
+
+            // there are no duplicated records
+            let duplicatedInstantsInFixedData = duplicatedRecords(result);
+            assert.equal(duplicatedInstantsInFixedData, 0, "there should be no repeated midnight!");
+        });
+
+        //
+    //     test("midnight screen change", () => {
+    //         assert.ok(false, "write me!");
+    //
+    //         const morning_dayOne = moment().startOf("day").add(6, "minutes");
+    //         const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
+    //         let input = [
+    //             {instant: morning_dayOne, on_off: true},
+    //             {instant: morning_dayOne.clone().add(12, "hours"), on_off: false},
+    //             {instant: morning_dayOne.clone().add(18, "hours"), on_off: true},
+    //             {instant: morning_dayOne.clone().add(22, "hours"), on_off: false},
+    //             {instant: morning_dayTwo, on_off: true},
+    //             {instant: morning_dayTwo.clone().add(12, "hours"), on_off: false},
+    //         ].map(hit => {
+    //             return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
+    //         });
+    //         let result = fix_data(input);
+    //
+    //         let resultLen = result.length;
+    //         assert.equal(result.length, input.length+1);
+    //         assert.equal(result[0].instant, input[0].instant);
+    //         assert.equal(result[resultLen-1-2].instant, morning_dayTwo.clone().startOf("day").valueOf()/1000);
+    //
+    //         const cache = result
+    //                 .map(hit => hit.instant)
+    //                 .reduce((prev, instant) => {
+    //                     prev[instant] = prev[instant] ? prev[instant]+1 : 1;
+    //                     return prev;
+    //                 }, {});
+    //         const duplicatedInstantsInFixedData = Object.keys(cache)
+    //             .filter((cache_key) => {
+    //                 return cache[cache_key] > 1;
+    //             }).length;
+    //         assert.equal(duplicatedInstantsInFixedData, 0, "there should be no repeated midnight (day 2)!");
+    //     });
+    //
+
+        test("if cross-day usage, midnight record does not modify on_off status", () => {
+            const morning_dayOne = moment().startOf("day").add(6, "minutes");
+            const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
+            let input = [
+                {instant: morning_dayOne, on_off: true},
+                {instant: morning_dayOne.clone().add(12, "hours"), on_off: false},
+                {instant: morning_dayOne.clone().add(18, "hours"), on_off: true},
+                {instant: morning_dayOne.clone().add(22, "hours"), on_off: false},
+                {instant: morning_dayOne.clone().add(23, "hours").add(10, "minutes"), on_off: true},
+                {instant: morning_dayTwo, on_off: false}
+            ].map(hit => {
+                return {instant: hit.instant.valueOf() / 1000, on_off: hit.on_off};
+            });
+            let result = fix_data(input);
+
+            let midnightRecordIndex = indexOfInstant(result, morning_dayTwo.clone().startOf("day").valueOf()/1000);
+            assert.ok(midnightRecordIndex !== -1, "there should a be midnight here!");
+            assert.equal(result[midnightRecordIndex].on_off, true, "cross-day usage ==> no change!");
+            assert.equal(result[midnightRecordIndex-1].on_off, true, "the record before midnight should be `true`");
+            assert.equal(result[midnightRecordIndex+1].on_off, false, "the record after midnight should be `false`");
+        });
     });
 </script>
 </body>
