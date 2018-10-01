@@ -113,17 +113,28 @@ function fix_data(data) {
     // add entries at midnight (end of day)
     let days = Object.keys(grouped_by_day).sort();
     days.forEach((day, i) => {
-        if (i === (days.length-1)) return;
+        // if (i === (days.length-1)) return;
 
         // not using moment.utc here because timestamps on server are not utc
-        let midnight = moment(day, "YYYY MM DD").endOf("day");
-        let entries = grouped_by_day[day];
-        let last_entry_of_previous_day = entries[entries.length - 1];
-        grouped_by_day[day].push({
-            instant: midnight.valueOf() / 1000,
-            on_off: last_entry_of_previous_day.on_off,
-            new_: true
-        });
+        // let midnight = moment(day, "YYYY MM DD").endOf("day");
+        if(i > 0) {
+            let entries = grouped_by_day[days[i-1]];
+            let last_entry_of_yesterday = entries[entries.length - 1];
+            grouped_by_day[day].slice(0, 0, {
+                instant: moment(day, "YYYY MM DD").startOf("day").valueOf() / 1000,
+                on_off: last_entry_of_yesterday.on_off,
+                new_: true
+            });
+        }
+        if (i < days.length) {
+            let entries = grouped_by_day[day];
+            let last_entry_of_today = entries[entries.length - 1];
+            grouped_by_day[day].push({
+                instant: moment(day, "YYYY MM DD").endOf("day").valueOf() / 1000,
+                on_off: last_entry_of_today.on_off,
+                new_: true
+            });
+        }
     });
 
     // flatten
