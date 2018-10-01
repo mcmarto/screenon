@@ -1,6 +1,7 @@
 const turned_off = (on_off) => on_off === false;
 const turned_on = (on_off) => on_off === true;
 
+// Note that all records in `data` should be of the same day.
 function cumulated_time(data) {
     if(data.length === 0) {
         return [];
@@ -8,8 +9,7 @@ function cumulated_time(data) {
 
     let cumulated = [];
     let currentTotal = 0;
-    let firstIsOff = turned_off(data[0].on_off);
-    let realData = firstIsOff ? data.slice(1) : data;
+    let realData = data;
     cumulated.push({instant: data[0].instant, value: 0});
     for(let i=0; i<realData.length-1; i+=1) {
         if(turned_on(realData[i].on_off)) {
@@ -110,16 +110,16 @@ function fix_data(data) {
         }
     });
 
-    // add entries at midnight
+    // add entries at midnight (end of day)
     let days = Object.keys(grouped_by_day).sort();
     days.forEach((day, i) => {
-        if (i === 0) return;
+        if (i === (days.length-1)) return;
 
         // not using moment.utc here because timestamps on server are not utc
-        let midnight = moment(day, "YYYY MM DD").startOf("day");
-        let previous_day_entries = grouped_by_day[days[i - 1]];
-        let last_entry_of_previous_day = previous_day_entries[previous_day_entries.length - 1];
-        grouped_by_day[day].splice(0, 0, {
+        let midnight = moment(day, "YYYY MM DD").endOf("day");
+        let entries = grouped_by_day[day];
+        let last_entry_of_previous_day = entries[entries.length - 1];
+        grouped_by_day[day].push({
             instant: midnight.valueOf() / 1000,
             on_off: last_entry_of_previous_day.on_off,
             new_: true

@@ -56,13 +56,12 @@
             ];
 
             let result = cumulated_time(input);
-            // console.error(result.map(x => JSON.stringify(x)).join(","));
 
             assert.deepEqual(result, [
                 // t0
                 {instant: START, value: 0},
-                // t1 is ignored, as the first value is false.
-                // {instant: START + 10, value: 0},
+                // t1
+                {instant: START + 10, value: 0},
                 // t2
                 {instant: START + 50, value: 40},
                 // t3
@@ -70,7 +69,35 @@
                 // t4
                 {instant: START + 200, value: 140}
             ]);
-        })
+        });
+
+        test("day ending with turned on screen", () => {
+            const morning_dayOne = moment().startOf("day");
+            let input = [
+                {instant: morning_dayOne, on_off: false},
+                {instant: morning_dayOne.clone().add(12, "hours"), on_off: true},
+                {instant: morning_dayOne.clone().add(18, "hours"), on_off: false},
+                {instant: morning_dayOne.clone().add(22, "hours"), on_off: true},
+                // 1 hour after second day's midnight. needed to let `fix_data` generate the end-of-day record
+                // needed for the test
+                {instant: morning_dayOne.clone().add(25, "hours"), on_off: false}
+            ].map(hit => {
+                return {instant: hit.instant.valueOf() / 1000, on_off: hit.on_off};
+            });
+            let fixedInput = fix_data(input);
+
+            let dayOneRecords = fixedInput.slice(0, -1);
+            assert.equal(dayOneRecords.length, 5);
+            let result = cumulated_time(dayOneRecords);
+            // compare seconds as integers - use `floor` to convert floats
+            assert.deepEqual(result.map(ct => Math.floor(ct.value)), [
+                0, /*start of day*/
+                0, /*12 hours*/
+                6*60*60, /*18 hours*/
+                6*60*60, /*22 hours*/
+                6*60*60 + (60*60 + 59*60 + 59) /*end of day*/
+            ]);
+        });
     });
 
     suite("merge_consecutive_entries", () => {
@@ -166,7 +193,7 @@
             assert.deepEqual(result.map(rec => rec.on_off), [true, false, false, true, false]);
         });
 
-        test("does not add midnight records to the first day of data", () => {
+        test("adds midnight records to the first day of data, but not to last", () => {
             const morning_dayOne = moment().startOf("day").add(6, "minutes");
             const morning_dayTwo = moment().startOf("day").add(1, "day").add(5, "minutes");
             let input = [
@@ -178,9 +205,15 @@
                 return {instant: hit.instant.valueOf()/1000, on_off: hit.on_off};
             });
             let result = fix_data(input);
+            let lastInput = input.length - 1;
+            let last = result.length - 1;
 
-            // the midnight record is not added to the first day in the period
             assert.equal(result[0].instant, input[0].instant);
+            // the last record of first day is midnight record
+            assert.equal(result[2].instant, morning_dayOne.clone().endOf("day").valueOf()/1000);
+            // the last record of second day is not midnight record
+            assert.notEqual(result[last].instant, morning_dayTwo.clone().endOf("day").valueOf()/1000);
+            assert.equal(result[last].instant, input[lastInput].instant);
         });
 
         test("adds midnight records", () => {
@@ -202,7 +235,7 @@
             assert.equal(result.length, input.length+1);
 
             // the midnight record is added before the morning of the second day
-            let midnightRecordIndex = indexOfInstant(result, morning_dayTwo.clone().startOf("day").valueOf()/1000);
+            let midnightRecordIndex = indexOfInstant(result, morning_dayOne.clone().endOf("day").valueOf()/1000);
             assert.ok(midnightRecordIndex !== -1, "there should be a midnight record here!");
             // the status of the midnight record should be false (from 2200 day 1, it changes 0005 day 2)
             assert.ok(!result[midnightRecordIndex].on_off, "the midnight record should be `false`");
@@ -228,10 +261,7 @@
             });
             let result = fix_data(input);
 
-            const duplicatedInstantsInFixedData = duplicatedRecords(result);
-            assert.equal(duplicatedInstantsInFixedData, 1, "there should be a repeated midnight (day 2)!");
-
-            const midnightRecordIndex = indexOfInstant(result, morning_dayTwo.clone().valueOf()/1000);
+            const midnightRecordIndex = indexOfInstant(result, morning_dayOne.clone().endOf("day").valueOf()/1000);
             assert.equal(result[midnightRecordIndex].on_off, !result[midnightRecordIndex+1].on_off, "the two midnight records should be different");
             assert.equal(result[midnightRecordIndex].on_off, false, "the new midnight record should be _before_ the legit one");
         });
@@ -251,12 +281,13 @@
             });
             let result = fix_data(input);
 
-            let midnightRecordIndex = indexOfInstant(result, morning_dayTwo.clone().startOf("day").valueOf()/1000);
+            let midnightRecordIndex = indexOfInstant(result, morning_dayOne.clone().endOf("day").valueOf()/1000);
             assert.ok(midnightRecordIndex !== -1, "there should a be midnight here!");
             assert.equal(result[midnightRecordIndex].on_off, true, "cross-day usage ==> no change!");
             assert.equal(result[midnightRecordIndex-1].on_off, true, "the record before midnight should be `true`");
             assert.equal(result[midnightRecordIndex+1].on_off, false, "the record after midnight should be `false`");
         });
+
     });
 </script>
 </body>
